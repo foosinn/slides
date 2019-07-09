@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hub
+  namespace: default
+  labels:
+    app: hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hub
+  template:
+    metadata:
+      labels:
+        app: hub
+    spec:
+      containers:
+        - name: hub
+          image: bitsbeats/hub
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: REGISTRY
+              value: http://registry.192.168.39.37.xip.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hub
+  namespace: default
+spec:
+  selector:
+    app: hub
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: http
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: hub
+  namespace: default
+spec:
+ rules:
+ - host: hub.192.168.39.37.xip.io
+   http:
+     paths:
+     - path: /
+       backend:
+         serviceName: hub
+         servicePort: http

@@ -1,0 +1,83 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea
+  namespace: default
+  labels:
+    app: gitea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea
+  template:
+    metadata:
+      labels:
+        app: gitea
+    spec:
+      containers:
+      - name: gitea
+        image: gitea/gitea:latest
+        env:
+          - name: ROOT_URL
+            value: http://git.192.168.39.37.xip.io
+          - name: SECRET_KEY
+            value: Ohnuishieducos0eethoez1baeph3eip
+        ports:
+        - containerPort: 3000
+          name: http
+        - containerPort: 22
+          name: ssh
+        volumeMounts:
+        - mountPath: /data
+          name: gitea
+      volumes:
+      - name: gitea
+        persistentVolumeClaim:
+          claimName: gitea
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea
+  namespace: default
+spec:
+  selector:
+    app: gitea
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: http
+    name: http
+  - protocol: TCP
+    port: 22
+    targetPort: ssh
+    name: ssh
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitea
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: gitea
+  namespace: default
+spec:
+ rules:
+ - host: git.192.168.39.37.xip.io
+   http:
+     paths:
+     - path: /
+       backend:
+         serviceName: gitea
+         servicePort: http

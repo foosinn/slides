@@ -1,0 +1,20 @@
+{{- $fullName := include "myapp.fullname" . -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+{{ include "myapp.labels" . | indent 4 }}
+spec:
+  rules:
+    {{- if hasSuffix "staging" .Release.Name }}
+    - host: myapp-staging.192.168.39.37.xip.io
+    {{- else }}
+    - host: myapp.192.168.39.37.xip.io
+    {{- end }}
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: {{ $fullName }}
+              servicePort: http

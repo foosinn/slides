@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: default
+  labels:
+    app: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+        - name: minio
+          image: minio/minio
+          command:
+            - minio
+            - server
+            - /data
+          ports:
+            - containerPort: 9000
+              name: http
+          env:
+            - name: MINIO_ACCESS_KEY
+              value: RxKnMl9EIEBievw
+            - name: MINIO_SECRET_KEY
+              value: RstRMMD745AZ3bPGq0TkM6t94LLlJTt
+          volumeMounts:
+            - mountPath: /data
+              name: minio
+      volumes:
+      - name: minio
+        persistentVolumeClaim:
+          claimName: minio
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: default
+spec:
+  selector:
+    app: minio
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: minio
+  namespace: default
+spec:
+ rules:
+ - host: minio.192.168.39.37.xip.io
+   http:
+     paths:
+     - path: /
+       backend:
+         serviceName: minio
+         servicePort: http

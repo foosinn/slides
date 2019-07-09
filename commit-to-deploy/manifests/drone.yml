@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drone
+  namespace: default
+  labels:
+    app: drone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drone
+  template:
+    metadata:
+      labels:
+        app: drone
+    spec:
+      containers:
+        - name: drone
+          image: drone/drone:1.0.0
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: DRONE_KUBERNETES_ENABLED
+              value: "true"
+            - name: DRONE_KUBERNETES_NAMESPACE
+              value: default
+            - name: DRONE_TLS_AUTOCERT
+              value: "false"
+            - name: DRONE_GITEA_SERVER
+              value: http://git.192.168.39.37.xip.io
+            - name: DRONE_RPC_SECRET
+              value: 941121ab0dd75fb113fe7049a0e61e11
+            - name: DRONE_SERVER_HOST
+              value: drone.192.168.39.37.xip.io
+            - name: DRONE_SERVER_PROTO
+              value: http
+          volumeMounts:
+            - mountPath: /data
+              name: drone
+      volumes:
+      - name: drone
+        persistentVolumeClaim:
+          claimName: drone
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: drone-rbac
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: drone
+  namespace: default
+spec:
+  selector:
+    app: drone
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: drone
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: drone
+  namespace: default
+spec:
+ rules:
+ - host: drone.192.168.39.37.xip.io
+   http:
+     paths:
+     - path: /
+       backend:
+         serviceName: drone
+         servicePort: http

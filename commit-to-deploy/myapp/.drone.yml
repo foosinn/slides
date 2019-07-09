@@ -1,0 +1,116 @@
+name: default
+kind: Pipeline
+
+steps:
+  - name: cache-load
+    image: bitsbeats/drone-s3-cache
+    volumes:
+      - name: cache
+        path: /cache
+    settings:
+      <<: &cache
+        pull: true
+        endpoint: http://minio.192.168.39.37.xip.io
+        access_key: RxKnMl9EIEBievw
+        secret_key: RstRMMD745AZ3bPGq0TkM6t94LLlJTt
+      workdir: /
+      restore: true
+
+  - name: go-build
+    image: golang:alpine
+    environment:
+      CGO_ENABLED: "0"
+    commands:
+      - go build ./cmd/myapp
+    volumes:
+      - name: cache
+        path: /cache
+
+  - name: cache-save
+    image: plugins/s3-cache
+    volumes:
+      - name: cache
+        path: /cache
+    settings:
+      <<: *cache
+      mount:
+        - /cache
+      rebuild: true
+
+  - name: build-staging
+    image: plugins/docker
+    settings:
+      #repo: registry.192.168.39.37.xip.io:80/apps/myapp
+      #registry: registry.192.168.39.37.xip.io:80
+      repo: registry.default.svc:80/apps/myapp
+      registry: registry.default.svc:80
+      insecure: true
+      storage_driver: vfs
+      tags: staging
+    when:  &staging
+      event:
+        - push
+      branch:
+        - master
+
+  - name: build-production
+    image: plugins/docker
+    settings:
+      #repo: registry.192.168.39.37.xip.io:80/apps/myapp
+      #registry: registry.192.168.39.37.xip.io:80
+      repo: registry.default.svc:80/apps/myapp
+      registry: registry.default.svc:80
+      insecure: true
+      storage_driver: vfs
+      auto_tag: true
+    when:  &production
+      event:
+        - tag
+
+  - name: secret-config
+    image: busybox
+    commands:
+      - |
+        cat > helm/secret.txt <<EOF
+        NOT IN THE DOCKER IMAGE
+        EOF
+
+  - <<: &deploy  # deploy using helm
+      name: deploy-staging
+      image: quay.io/ipedrazas/drone-helm
+      environment:
+        API_SERVER: https://kubernetes.default.svc
+        KUBERNETES_TOKEN:
+          from_secret:
+            myapp-staging
+      settings:
+        chart: ./helm
+        release: myapp-staging
+        namespace: myapp-staging
+        values:
+          - image.tag=staging
+          - git.commit_sha=$DRONE_COMMIT_SHA
+        tiller_ns: myapp-staging
+        wait: true
+        skip_tls_verify: true
+        force: true
+    when: *staging
+
+  - <<: *deploy
+    name: deploy-production
+    environment:
+        KUBERNETES_TOKEN:
+          from_secret:
+            myapp
+    settings:
+      release: myapp
+      namespace: myapp
+      tiller_ns: myapp
+      values:
+        - image.tag=${DRONE_TAG/v/}
+        - git.commit_sha=$DRONE_COMMIT_SHA
+    when: *production
+
+volumes:
+  - name: cache
+    temp: {}
