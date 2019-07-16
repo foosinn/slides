@@ -21,7 +21,7 @@ spec:
         image: gitea/gitea:latest
         env:
           - name: ROOT_URL
-            value: http://git.192.168.39.37.xip.io
+            value: http://git.192.168.39.43.xip.io
           - name: SECRET_KEY
             value: Ohnuishieducos0eethoez1baeph3eip
         ports:
@@ -74,7 +74,7 @@ metadata:
   namespace: default
 spec:
  rules:
- - host: git.192.168.39.37.xip.io
+ - host: git.192.168.39.43.xip.io
    http:
      paths:
      - path: /

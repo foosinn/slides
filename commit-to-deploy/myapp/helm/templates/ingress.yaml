@@ -8,9 +8,9 @@ metadata:
 spec:
   rules:
     {{- if hasSuffix "staging" .Release.Name }}
-    - host: myapp-staging.192.168.39.37.xip.io
+    - host: myapp-staging.192.168.39.43.xip.io
     {{- else }}
-    - host: myapp.192.168.39.37.xip.io
+    - host: myapp.192.168.39.43.xip.io
     {{- end }}
       http:
         paths:

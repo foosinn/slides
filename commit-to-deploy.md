@@ -1,1 +1,0 @@
-commit-to-deploy/slides/commit-to-deploy.md

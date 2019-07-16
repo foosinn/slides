@@ -8,7 +8,7 @@
 
   # you need to replace the service ip
   minikube ip
-  find -type f -print0 | xargs -0 sed 's/192.168.39.37/192.168.39.37/g' -i
+  find -type f -print0 | xargs -0 sed 's/192.168.39.43/192.168.39.43/g' -i
 
   # apply manifests
   kc apply -f manifests/

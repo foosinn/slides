@@ -10,7 +10,7 @@ steps:
     settings:
       <<: &cache
         pull: true
-        endpoint: http://minio.192.168.39.37.xip.io
+        endpoint: http://minio.192.168.39.43.xip.io
         access_key: RxKnMl9EIEBievw
         secret_key: RstRMMD745AZ3bPGq0TkM6t94LLlJTt
       workdir: /
@@ -40,8 +40,8 @@ steps:
   - name: build-staging
     image: plugins/docker
     settings:
-      #repo: registry.192.168.39.37.xip.io:80/apps/myapp
-      #registry: registry.192.168.39.37.xip.io:80
+      #repo: registry.192.168.39.43.xip.io:80/apps/myapp
+      #registry: registry.192.168.39.43.xip.io:80
       repo: registry.default.svc:80/apps/myapp
       registry: registry.default.svc:80
       insecure: true
@@ -56,8 +56,8 @@ steps:
   - name: build-production
     image: plugins/docker
     settings:
-      #repo: registry.192.168.39.37.xip.io:80/apps/myapp
-      #registry: registry.192.168.39.37.xip.io:80
+      #repo: registry.192.168.39.43.xip.io:80/apps/myapp
+      #registry: registry.192.168.39.43.xip.io:80
       repo: registry.default.svc:80/apps/myapp
       registry: registry.default.svc:80
       insecure: true
@@ -72,7 +72,7 @@ steps:
     commands:
       - |
         cat > helm/secret.txt <<EOF
-        NOT IN THE DOCKER IMAGE
+        NOT IN THE DOCKER IMAGE 2
         EOF
 
   - <<: &deploy  # deploy using helm

@@ -1,0 +1,19 @@
+<html>
+    <head>
+        <title>{{ title }}</title>
+    </head>
+    <body>
+        <h1>Hello, {{ user.username }}!</h1>
+        <p>Welchome to {{ title }}</p>
+        <h2>These are the awesome items we sell</h2>
+        <table>
+            {% for thing in things %}
+            <tr>
+                <td>{{ thing.id }}</td>
+                <td>{{ thing.name }}</td>
+                <td>{{ thing.price }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>

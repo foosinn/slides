@@ -1,8 +1,11 @@
-slides := $(wildcard */slides/*.md)
+marks := $(wildcard */slides/*.md)
+htmls := $(marks:.md=.html)
 
-all: $(slides)
-	pandoc -t revealjs -s -o $(^F:.md=.html) $^ -V revealjs-url=./reveal.js
-	ln -sf $^ $(^F)
+
+all: $(htmls) reveal.js
+
+%.html: %.md
+	pandoc -t revealjs -s -o $(@F) $^ -V revealjs-url=./reveal.js -V theme=white
 
 reveal.js:
 	mkdir reveal.js

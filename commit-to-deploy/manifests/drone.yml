@@ -29,11 +29,11 @@ spec:
             - name: DRONE_TLS_AUTOCERT
               value: "false"
             - name: DRONE_GITEA_SERVER
-              value: http://git.192.168.39.37.xip.io
+              value: http://git.192.168.39.43.xip.io
             - name: DRONE_RPC_SECRET
               value: 941121ab0dd75fb113fe7049a0e61e11
             - name: DRONE_SERVER_HOST
-              value: drone.192.168.39.37.xip.io
+              value: drone.192.168.39.43.xip.io
             - name: DRONE_SERVER_PROTO
               value: http
           volumeMounts:
@@ -89,7 +89,7 @@ metadata:
   namespace: default
 spec:
  rules:
- - host: drone.192.168.39.37.xip.io
+ - host: drone.192.168.39.43.xip.io
    http:
      paths:
      - path: /
