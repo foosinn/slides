@@ -1,0 +1,51 @@
+version: '3.7'
+services:
+
+  mariadb:
+    image: mariadb
+    volumes:
+      - ./volumes/mariadb:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: strichliste
+      MYSQL_USER: strichliste
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    networks:
+      - database
+
+  frontend:
+    build:
+      context: frontend
+    links:
+      - backend
+    ports:
+      - 8080:8080
+
+  backend-init:
+    build: backend
+    links:
+      - mariadb
+    environment: &backendenv
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: "mysql://strichliste:${MYSQL_PASSWORD}@mariadb/strichliste"
+      CORS_ALLOW_ORIGIN: .*
+    command: >-
+      /bin/sh -c "
+        until nc -z mariadb 3306; do sleep 1; done
+        php bin/console doctrine:schema:create
+      "
+    networks:
+      - database
+
+  backend:
+    build: backend
+    environment: *backendenv
+    links:
+      - backend-init
+    networks:
+      - default
+      - database
+
+networks:
+  database:
+    driver: bridge

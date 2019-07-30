@@ -21,12 +21,6 @@ def slow(items):
     return [worker(item) for item in items]
 
 def fast(items):
-    for item in items:
-        yield worker(item)
+    return (worker(item) for item in items)
 
-def main():
-    for item in fast(fast(fast(src))):
-        print(item)
-
-if __name__ == '__main__':
-    main()
+x = list(fast(src))

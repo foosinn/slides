@@ -1,11 +1,15 @@
+
 from contextlib import contextmanager
 
+class asdf:
 
-@contextmanager
-def wrapper():
-    print('before')
-    yield
-    print('after')
+    def __enter__(self):
+       print('before')
 
-with wrapper():
+    def __exit__(self,type, value, traceback):
+           print('after')
+
+
+with asdf():
     print("hello")
+
