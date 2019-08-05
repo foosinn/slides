@@ -15,3 +15,7 @@ FROM nginx:alpine
 
 COPY --from=builder --chown=nobody:nobody /app/build /app
 ADD default.conf /etc/nginx/conf.d/default.conf
+RUN true \
+  && touch /var/run/nginx.pid \
+  && chown nginx:nginx /var/cache/nginx /var/run/nginx.pid
+USER nginx
