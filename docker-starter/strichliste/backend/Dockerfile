@@ -12,17 +12,18 @@ RUN composer install --no-ansi
 FROM php:7.3-fpm-alpine
 
 RUN true \
-  && apk add --virtual=.run mariadb-connector-c libxml2 \
-  && apk add --virtual=.build mariadb-connector-c-dev libxml2-dev \
+  && apk add --virtual=.run mariadb-connector-c libpq libxml2 \
+  && apk add --virtual=.build mariadb-connector-c-dev postgresql-dev libxml2-dev \
   && docker-php-source extract \
   && docker-php-ext-install ctype \
-  && docker-php-ext-install tokenizer \
-  && docker-php-ext-install iconv \
-  && docker-php-ext-install mbstring \
-  && docker-php-ext-install xml \
-  && docker-php-ext-install json \
   && docker-php-ext-install dom \
+  && docker-php-ext-install iconv \
+  && docker-php-ext-install json \
+  && docker-php-ext-install mbstring \
   && docker-php-ext-install pdo_mysql \
+  && Docker-php-ext-install pdo_pgsql \
+  && docker-php-ext-install tokenizer \
+  && docker-php-ext-install xml \
   && docker-php-source delete \
   && apk del .build
 
