@@ -1,0 +1,98 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  namespace: strichliste
+  labels:
+    app: mariadb
+spec:
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:10
+          ports:
+            - containerPort: 3306
+              name: mariadb
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: strichliste
+                  key: database-root-password
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: strichliste
+                  key: database-password
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: strichliste
+                  key: database-user
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: strichliste
+                  key: database-db
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 500m
+            limits:
+              memory: 512Mi
+              cpu: 1000m
+          readinessProbe: &probe
+            tcpSocket:
+              port: mariadb
+          livenessProbe: *probe
+          securityContext:
+            privileged: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /var/lib/mariadb
+              name: mariadb
+            - mountPath: /var/run/mysqld
+              name: mariadb-run
+            - mountPath: /tmp
+              name: mariadb-tmp
+      volumes:
+        - name: mariadb
+          persistentVolumeClaim:
+            claimName: mariadb
+        - name: mariadb-run
+          emptyDir: {}
+        - name: mariadb-tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mariadb
+  namespace: strichliste
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: strichliste
+spec:
+  selector:
+    app: mariadb
+  ports:
+  - protocol: TCP
+    port: 3306
+    targetPort: mariadb

@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: strichliste
+  labels:
+    app: backend
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          ports:
+            - containerPort: 9000
+              name: fpm
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 200m
+          readinessProbe: &probe
+            tcpSocket:
+              port: fpm
+          livenessProbe: *probe
+          securityContext:
+            privileged: false
+            readOnlyRootFilesystem: true
+          <<: &backend
+            image: foosinn/strichliste-backend
+            imagePullPolicy: Always
+            env:
+              - name: APP_SECRET
+                valueFrom:
+                  secretKeyRef:
+                    name: strichliste
+                    key: app-secret
+              - name: DATABASE_URL
+                valueFrom:
+                  secretKeyRef:
+                    name: strichliste
+                    key: database-url
+              - name: CORS_ALLOW_ORIGIN
+                valueFrom:
+                  configMapKeyRef:
+                    name: strichliste
+                    key: cors-allow-origin
+      initContainers:
+        - name: db-init
+          command:
+            - /bin/sh
+            - -c
+            - until nc -z mariadb 3306; do echo waiting for db; sleep 1; done;
+              php bin/console doctrine:schema:create
+          <<: *backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: strichliste
+spec:
+  selector:
+    app: backend
+  ports:
+  - protocol: TCP
+    port: 9000
+    targetPort: fpm

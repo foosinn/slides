@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: strichliste
+  namespace: strichliste
+data:
+  cors-allow-origin: ".*"

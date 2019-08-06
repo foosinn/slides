@@ -1,0 +1,78 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: strichliste
+  labels:
+    app: frontend
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          ports:
+            - containerPort: 8080
+              name: http
+          image: foosinn/strichliste-frontend
+          resources:
+            requests:
+              memory: 32Mi
+              cpu: 100m
+            limits:
+              memory: 64Mi
+              cpu: 200m
+          readinessProbe: &probe
+            httpGet:
+              path: /index.html
+              port: http
+          livenessProbe: *probe
+          securityContext:
+            privileged: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /var/cache/nginx
+              name: nginx-cache
+            - mountPath: /var/run
+              name: nginx-run
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: strichliste
+spec:
+  selector:
+    app: frontend
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: http
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: strichliste
+  namespace: strichliste
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+ rules:
+ - host: strichliste.kube
+   http:
+     paths:
+     - path: /
+       backend:
+         serviceName: frontend
+         servicePort: 8080
