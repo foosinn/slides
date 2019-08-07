@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-deployment
+  labels:
+    app: nginx
+
+spec:
+  replicas: 5
+
+  selector:
+    matchLabels:
+      app: nginx
+
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: config-volume
+              mountPath: /usr/share/nginx/html
+        - name: bob
+          image: busybox
+          command:
+            - sleep
+            - "100000"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: config-volume
+          persistentVolumeClaim:
+            claimName: daten
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: daten
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5G
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  labels:
+    app: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx-service
+          servicePort: 80
