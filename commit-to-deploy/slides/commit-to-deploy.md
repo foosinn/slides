@@ -1,7 +1,7 @@
 ---
 author: Stefan Schwarz @foosinn
 title: Continuous Integration
-date: 10.07.2019
+date: 18.09.2019
 ---
 
 # whoami
@@ -27,11 +27,12 @@ date: 10.07.2019
   kind: pipeline
   name: default
 
-  - name: backend
-    image: golang
-    commands:
-    - go build
-    - go test
+  steps:
+	- name: backend
+      image: golang
+      commands:
+        - go build
+        - go test
   ```
 
 # Goals
