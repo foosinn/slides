@@ -57,7 +57,7 @@ spec:
             privileged: false
             readOnlyRootFilesystem: true
           volumeMounts:
-            - mountPath: /var/lib/mariadb
+            - mountPath: /var/lib/mysql
               name: mariadb
             - mountPath: /var/run/mysqld
               name: mariadb-run
